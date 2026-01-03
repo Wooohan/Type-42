@@ -1,6 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { AppProvider, useApp } from './store/AppContext';
+import { supabase } from './services/supabaseClient'; // Ensure this path is correct
 import Sidebar from './components/Sidebar';
 import DashboardView from './components/Dashboard/DashboardView';
 import InboxView from './components/Inbox/InboxView';
@@ -100,12 +100,54 @@ const PortalContent: React.FC = () => {
   const [isSdkReady, setIsSdkReady] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const { currentUser } = useApp();
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true); // Prevents flash of Login Page
+  
+  const { currentUser, setCurrentUser } = useApp(); // Make sure setCurrentUser is exposed in AppContext
 
   useEffect(() => {
+    // 1. Initialize Facebook SDK
     initFacebookSDK().then(() => setIsSdkReady(true));
-  }, []);
 
+    // 2. Persistent Session Check (Rehydration)
+    const initAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          // If AppContext has a method to set the user, call it here
+          if (setCurrentUser) {
+            setCurrentUser(session.user);
+          }
+        }
+      } catch (err) {
+        console.error("Auth session recovery failed:", err);
+      } finally {
+        setIsCheckingAuth(false);
+      }
+    };
+
+    initAuth();
+
+    // 3. Listen for Auth Changes (Sign out from other tabs, etc.)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (setCurrentUser) {
+        setCurrentUser(session?.user ?? null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [setCurrentUser]);
+
+  // Show a full-screen loader while checking for existing session
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50">
+        <Loader2 className="animate-spin text-blue-600 mb-4" size={48} />
+        <span className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Verifying Session...</span>
+      </div>
+    );
+  }
+
+  // If no user is found after checking, show login
   if (!currentUser) {
     return <LoginPage />;
   }
