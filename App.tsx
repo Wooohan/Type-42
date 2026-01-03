@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { AppProvider, useApp } from './store/AppContext';
-import { supabase } from './services/supabaseClient'; // Ensure this path is correct
+// FIXED: Path matches your GitHub structure 'services/supabaseConfig.ts'
+import { supabase } from './services/supabaseConfig'; 
 import Sidebar from './components/Sidebar';
 import DashboardView from './components/Dashboard/DashboardView';
 import InboxView from './components/Inbox/InboxView';
@@ -34,15 +35,12 @@ const LoginPage: React.FC = () => {
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-100 via-slate-50 to-indigo-50">
       <div className="bg-white p-8 md:p-12 rounded-[40px] md:rounded-[48px] shadow-2xl shadow-blue-200/50 max-w-md w-full border border-white relative overflow-hidden">
         <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/5 rounded-full -mr-16 -mt-16 blur-2xl"></div>
-        
         <div className="relative z-10 text-center">
           <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white mx-auto mb-8 shadow-xl shadow-blue-200 ring-4 ring-blue-50">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"/></svg>
           </div>
-          
-          <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight mb-2 animate-in fade-in slide-in-from-top-2">Portal Access</h1>
+          <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight mb-2">Portal Access</h1>
           <p className="text-slate-500 mb-8 md:mb-10 font-medium">Log in to your agent workspace</p>
-
           <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6 text-left">
             <div className="space-y-2">
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Email Address</label>
@@ -58,7 +56,6 @@ const LoginPage: React.FC = () => {
                 />
               </div>
             </div>
-
             <div className="space-y-2">
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Password</label>
               <div className="relative group">
@@ -73,14 +70,12 @@ const LoginPage: React.FC = () => {
                 />
               </div>
             </div>
-
             {error && (
               <div className="p-4 bg-red-50 border border-red-100 rounded-2xl flex items-center gap-3 text-red-600 text-xs font-bold animate-in shake duration-300">
                 <AlertCircle size={16} />
                 {error}
               </div>
             )}
-
             <button 
               type="submit"
               disabled={isLoading}
@@ -100,34 +95,30 @@ const PortalContent: React.FC = () => {
   const [isSdkReady, setIsSdkReady] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true); // Prevents flash of Login Page
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true); // Prevents "vanishing" on refresh
   
-  const { currentUser, setCurrentUser } = useApp(); // Make sure setCurrentUser is exposed in AppContext
+  const { currentUser, setCurrentUser } = useApp();
 
   useEffect(() => {
-    // 1. Initialize Facebook SDK
     initFacebookSDK().then(() => setIsSdkReady(true));
 
-    // 2. Persistent Session Check (Rehydration)
-    const initAuth = async () => {
+    // REHYDRATION LOGIC: Check for existing session
+    const checkUser = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) {
-          // If AppContext has a method to set the user, call it here
-          if (setCurrentUser) {
-            setCurrentUser(session.user);
-          }
+        if (session?.user && setCurrentUser) {
+          setCurrentUser(session.user);
         }
       } catch (err) {
-        console.error("Auth session recovery failed:", err);
+        console.error("Auth recovery error:", err);
       } finally {
         setIsCheckingAuth(false);
       }
     };
 
-    initAuth();
+    checkUser();
 
-    // 3. Listen for Auth Changes (Sign out from other tabs, etc.)
+    // Listen for auth state changes (like logging out)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (setCurrentUser) {
         setCurrentUser(session?.user ?? null);
@@ -137,17 +128,15 @@ const PortalContent: React.FC = () => {
     return () => subscription.unsubscribe();
   }, [setCurrentUser]);
 
-  // Show a full-screen loader while checking for existing session
   if (isCheckingAuth) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50">
         <Loader2 className="animate-spin text-blue-600 mb-4" size={48} />
-        <span className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Verifying Session...</span>
+        <span className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Restoring Session...</span>
       </div>
     );
   }
 
-  // If no user is found after checking, show login
   if (!currentUser) {
     return <LoginPage />;
   }
