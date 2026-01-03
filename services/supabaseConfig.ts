@@ -20,7 +20,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 
 // Helper function to check if Supabase is configured
 export const isSupabaseConfigured = () => {
-  return supabaseUrl && supabaseAnonKey && supabaseUrl !== 'https://fiuodbhgvmylvbanbfve.supabase.co';
+  return supabaseUrl && supabaseAnonKey && supabaseUrl !== 'https://rbdwqdrqnmshebnhpecr.supabase.co';
 };
 
 // Tables configuration
