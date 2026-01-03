@@ -14,8 +14,8 @@ app.use(cors());
 app.use(express.json());
 
 // Supabase configuration
-const supabaseUrl = process.env.SUPABASE_URL || 'https://fiuodbhgvmylvbanbfve.supabase.co';
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY || 'sb_secret_x33xGa8YmioWvfyvDtWNXA_fT_8VL9V';
+const supabaseUrl = process.env.SUPABASE_URL || 'https://rbdwqdrqnmshebnhpecr.supabase.co';
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY || 'sb_secret_c9OwZ8hN9plOLyA7I6cB8w_j135Pgyo';
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
