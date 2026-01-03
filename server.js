@@ -15,7 +15,7 @@ app.use(express.json());
 
 // Supabase configuration
 const supabaseUrl = process.env.SUPABASE_URL || 'https://rbdwqdrqnmshebnhpecr.supabase.co';
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY || 'sb_secret_c9OwZ8hN9plOLyA7I6cB8w_j135Pgyo';
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY || 'sb_publishable_Q2_aDlgKBA6DNzG5eOJndQ_6nr_rq45';
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
