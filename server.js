@@ -335,3 +335,8 @@ app.listen(PORT, () => {
 });
 
 export default app;
+// --- Add this at the bottom of server.js ---
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running on port ${PORT}`);
+  console.log(`Health check: http://0.0.0.0:${PORT}/api/health`);
+});
